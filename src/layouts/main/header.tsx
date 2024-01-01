@@ -44,14 +44,6 @@ export default function Header() {
             easing: theme.transitions.easing.easeInOut,
             duration: theme.transitions.duration.shorter,
           }),
-          ...(offsetTop && {
-            ...bgBlur({
-              color: theme.palette.grey[900],
-            }),
-            height: {
-              md: HEADER.H_DESKTOP_OFFSET,
-            },
-          }),
         }}
       >
         <Container sx={{ height: 1, display: 'flex', alignItems: 'center' }}>

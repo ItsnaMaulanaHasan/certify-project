@@ -26,7 +26,7 @@ export default function MainLayout({ children }: Props) {
         component="main"
         sx={{
           flexGrow: 1,
-          pt: { xs: 10, md: 12 },
+          py: { xs: 10, md: 20 },
         }}
       >
         {children}

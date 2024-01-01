@@ -10,7 +10,7 @@ export const paths = {
   // DASHBOARD
   dashboard: {
     root: ROOTS.DASHBOARD,
-    about: '/about',
+    about: '#about',
     upload: `/upload`,
     team: `/team`,
   },
