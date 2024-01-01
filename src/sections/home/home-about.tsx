@@ -1,1 +1,3 @@
-export default function HomeAbout() {}
+export default function HomeAbout() {
+  return 'ddsdsd';
+}
