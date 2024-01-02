@@ -2,7 +2,7 @@ import { Box, Grid, Stack, Button, Container, Typography } from '@mui/material';
 
 export default function HomeHero() {
   return (
-    <Container maxWidth="xl" sx={{ height: { xs: 'inherit', lg: '70vh' } }}>
+    <Container maxWidth="xl" sx={{ height: { xs: 'inherit', lg: '50vh' } }}>
       <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
           <Stack gap={5} alignItems="start" sx={{ maxWidth: { sm: '100%', md: '80%' }, px: 3 }}>
