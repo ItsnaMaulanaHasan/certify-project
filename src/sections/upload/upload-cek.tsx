@@ -2,6 +2,9 @@ import { useState, useCallback } from 'react';
 
 import { Box, Grid, Card, Stack, Button, Divider, Container, Typography } from '@mui/material';
 
+import { paths } from 'src/routes/paths';
+import { RouterLink } from 'src/routes/components';
+
 import Iconify from 'src/components/iconify';
 import { Upload } from 'src/components/upload';
 
@@ -72,6 +75,8 @@ export default function UploadCek() {
               backgroundColor: 'primary.main',
               px: '50px',
             }}
+            component={RouterLink}
+            href={paths.upload.create}
           >
             Buat
           </Button>
