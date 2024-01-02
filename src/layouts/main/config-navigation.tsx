@@ -15,8 +15,4 @@ export const navConfig = [
     title: 'Upload',
     path: paths.dashboard.upload,
   },
-  {
-    title: 'Team',
-    path: paths.dashboard.team,
-  },
 ];

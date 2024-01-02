@@ -1,5 +1,7 @@
 import axios, { AxiosRequestConfig } from 'axios';
 
+import { paths } from 'src/routes/paths';
+
 import { HOST_API } from 'src/config-global';
 
 // ----------------------------------------------------------------------
@@ -8,7 +10,10 @@ const axiosInstance = axios.create({ baseURL: HOST_API });
 
 axiosInstance.interceptors.response.use(
   (res) => res,
-  (error) => Promise.reject((error.response && error.response.data) || 'Something went wrong')
+  async (error) => {
+    const originalRequest = error.config;
+    return Promise.reject((error.response && error.response.data) || 'Something went wrong');
+  }
 );
 
 export default axiosInstance;
@@ -26,28 +31,34 @@ export const fetcher = async (args: string | [string, AxiosRequestConfig]) => {
 // ----------------------------------------------------------------------
 
 export const endpoints = {
-  chat: '/api/chat',
-  kanban: '/api/kanban',
-  calendar: '/api/calendar',
+  bucket: {
+    public: '/bucket/public',
+    private: '/bucket/private',
+  },
   auth: {
-    me: '/api/auth/me',
-    login: '/api/auth/login',
-    register: '/api/auth/register',
+    login: '/v1/user/login',
+    logout: '/v1/user/logout',
+    register: '/v1/user/register',
+    refresh: '/v1/token/refresh',
   },
-  mail: {
-    list: '/api/mail/list',
-    details: '/api/mail/details',
-    labels: '/api/mail/labels',
+  profile: {
+    root: '/v1/user',
+    changePassword: '/v1/user/change-password',
   },
-  post: {
-    list: '/api/post/list',
-    details: '/api/post/details',
-    latest: '/api/post/latest',
-    search: '/api/post/search',
+  sow: '/v1/works-scope',
+  service: '/v1/service',
+  team: '/v1/user/our-team',
+  gallery: {
+    category: '/v1/gallery/category',
+    item: '/v1/gallery',
   },
-  product: {
-    list: '/api/product/list',
-    details: '/api/product/details',
-    search: '/api/product/search',
+  product: '/v1/product',
+  message: '/v1/messages',
+  company: {
+    profile: '/v1/company-profile',
+    summary: '/v1/company-profile/summary',
+    banner: '/v1/banner',
+    client: '/v1/our-client',
+    logActivity: '/v1/user/log-activity',
   },
 };
