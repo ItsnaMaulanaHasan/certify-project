@@ -14,4 +14,7 @@ export const paths = {
     upload: `/upload`,
     team: `/team`,
   },
+  upload: {
+    create: `/create`,
+  },
 };
