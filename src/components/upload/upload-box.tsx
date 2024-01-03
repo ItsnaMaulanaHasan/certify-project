@@ -21,16 +21,16 @@ export default function UploadBox({ placeholder, error, disabled, sx, ...other }
     <Box
       {...getRootProps()}
       sx={{
-        m: 0.5,
-        width: 64,
-        height: 64,
+        // m: 0.5,
+        // width: 64,
+        // height: 64,
         flexShrink: 0,
         display: 'flex',
         borderRadius: 1,
         cursor: 'pointer',
-        alignItems: 'center',
+        // alignItems: 'center',
         color: 'text.disabled',
-        justifyContent: 'center',
+        // justifyContent: 'center',
         bgcolor: placeholder ? 'none' : (theme) => alpha(theme.palette.grey[500], 0.08),
         border: placeholder
           ? 'none'
