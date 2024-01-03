@@ -1,27 +1,32 @@
 import * as Yup from 'yup';
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useState, useCallback } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
 
 import { LoadingButton } from '@mui/lab';
-import { Card, Grid, Stack, Button, Container, Typography } from '@mui/material';
+import { Card, Grid, Stack, Button, Container, Typography, IconButton } from '@mui/material';
 
 import Iconify from 'src/components/iconify';
-import { Upload } from 'src/components/upload';
+import { UploadBox } from 'src/components/upload';
 import FormProvider, { RHFTextField } from 'src/components/hook-form';
 
 // ----------------------------------------------------------------------
 
 const FormSchema = Yup.object().shape({
-  name: Yup.string()
+  nomor: Yup.string()
     .min(3, 'Minimum 3 characters')
     .max(100, 'Maximum 100 characters')
     .required('Required'),
-  desc: Yup.string()
+  nama: Yup.string()
     .min(3, 'Minimum 3 characters')
     .max(1000, 'Maximum 1000 characters')
     .required('Required'),
-  icon: Yup.string().required('Required'),
+  email: Yup.string().email().required('Required'),
+  info: Yup.string()
+    .min(3, 'Minimum 3 characters')
+    .max(1000, 'Maximum 1000 characters')
+    .required('Required'),
+  file: Yup.string().required('Required'),
 });
 
 type Props = {
@@ -33,23 +38,49 @@ type Props = {
 export default function CreateForm({ onClose }: Props) {
   const [file, setFile] = useState<File | string | null>(null);
 
+  const [fileName, setFileName] = useState('');
+
+  const handleDropSingleFile = useCallback(async (acceptedFiles: File[]) => {
+    const newFile = acceptedFiles[0];
+
+    if (newFile) {
+      setFile(
+        Object.assign(newFile, {
+          preview: URL.createObjectURL(newFile),
+        })
+      );
+      methods.setValue('file', newFile.name);
+      setFileName(newFile.name);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const methods = useForm({
     resolver: yupResolver(FormSchema),
     defaultValues: {
-      name: '',
-      desc: '',
-      icon: '',
+      nomor: '',
+      nama: '',
+      email: '',
+      info: '',
+      file: '',
     },
   });
 
   const {
+    reset,
     handleSubmit,
-    formState: { isSubmitting },
+    formState: { errors, isSubmitting },
   } = methods;
 
   const onSubmit = handleSubmit(async (data) => {
     console.log(data);
   });
+
+  const onDeleteFile = () => {
+    setFile(null);
+    setFileName('');
+    methods.setValue('file', '');
+  };
   return (
     <Container>
       <Stack gap={5} alignItems="center" sx={{ mb: '50px' }}>
@@ -61,46 +92,60 @@ export default function CreateForm({ onClose }: Props) {
       </Stack>
       <Stack>
         <FormProvider methods={methods} onSubmit={onSubmit}>
-          <Card sx={{ borderRadius: '10px', height: '40px' }}>
-            <Grid container spacing={3}>
-              <Grid item>
-                <Upload
-                  file={file}
-                  onDelete={() => setFile(null)}
-                  accept={{ 'image/*': [] }}
-                  customPlaceholder={
-                    <Card
-                      sx={{
-                        borderRadius: '10px',
-                        backgroundColor: 'grey.300',
-                        py: '6px',
-                        px: '20px',
-                        height: '40px',
-                      }}
-                    >
-                      <Stack direction="row" alignItems="center" justifyContent="center" gap={1}>
-                        <Iconify icon="ph:upload-light" />
-                        <Typography>Pilih File</Typography>
-                      </Stack>
-                    </Card>
-                  }
-                />
-              </Grid>
-              <Grid item>
-                <Typography color="grey" sx={{ py: '6px' }}>
-                  Belum ada file yang dipilih
-                </Typography>
-              </Grid>
-            </Grid>
-          </Card>
           <Grid container spacing={3} sx={{ p: 3 }} alignItems="center">
+            <Grid item xs={12}>
+              <Card sx={{ borderRadius: '10px' }}>
+                <Grid container spacing={3}>
+                  <Grid item sx={{ textAlign: 'left' }}>
+                    <UploadBox
+                      file={file}
+                      onDrop={handleDropSingleFile}
+                      onDelete={() => {
+                        onDeleteFile();
+                      }}
+                      accept={{ 'image/*': [] }}
+                      placeholder={
+                        <Button variant="contained" startIcon={<Iconify icon="ph:upload-light" />}>
+                          Pilih File
+                        </Button>
+                      }
+                    />
+                  </Grid>
+                  <Grid item xs>
+                    <Stack direction="row" justifyContent="space-between">
+                      <Typography color="grey" sx={{ py: '6px' }}>
+                        {fileName || 'Belum ada file yang dipilih'}
+                      </Typography>
+                      {fileName && (
+                        <IconButton
+                          onClick={() => {
+                            onDeleteFile();
+                          }}
+                          color="error"
+                          sx={{ textAlign: 'right' }}
+                        >
+                          <Iconify icon="octicon:x-16" />
+                        </IconButton>
+                      )}
+                    </Stack>
+                  </Grid>
+                </Grid>
+              </Card>
+            </Grid>
+            <Grid item xs={12}>
+              {Boolean(errors.file) && !fileName && (
+                <Typography variant="subtitle1" color="error">
+                  {errors?.file?.message}
+                </Typography>
+              )}
+            </Grid>
             <Grid item xs={12} md={3}>
               <Typography variant="body2" sx={{ fontWeight: 400 }}>
                 Nomor Sertifikat
               </Typography>
             </Grid>
             <Grid item xs={12} md={9}>
-              <RHFTextField name="name" placeholder="Masukkan nomor sertifikat" />
+              <RHFTextField name="nomor" placeholder="Masukkan nomor sertifikat" />
             </Grid>
             <Grid item xs={12} md={3}>
               <Typography variant="body2" sx={{ fontWeight: 400 }}>
@@ -108,7 +153,7 @@ export default function CreateForm({ onClose }: Props) {
               </Typography>
             </Grid>
             <Grid item xs={12} md={9}>
-              <RHFTextField name="name" placeholder="Masukkan nama pemilik" />
+              <RHFTextField name="nama" placeholder="Masukkan nama pemilik" />
             </Grid>
             <Grid item xs={12} md={3}>
               <Typography variant="body2" sx={{ fontWeight: 400 }}>
@@ -116,7 +161,7 @@ export default function CreateForm({ onClose }: Props) {
               </Typography>
             </Grid>
             <Grid item xs={12} md={9}>
-              <RHFTextField name="name" placeholder="Masukkan email pemilik" />
+              <RHFTextField name="email" placeholder="Masukkan email pemilik" />
             </Grid>
             <Grid item xs={12} md={3}>
               <Typography variant="body2" sx={{ fontWeight: 400 }}>
@@ -125,7 +170,7 @@ export default function CreateForm({ onClose }: Props) {
             </Grid>
             <Grid item xs={12} md={9}>
               <RHFTextField
-                name="desc"
+                name="info"
                 placeholder="Masukkan informasi tambahan"
                 multiline
                 rows={4}
@@ -134,7 +179,14 @@ export default function CreateForm({ onClose }: Props) {
 
             <Grid item xs={12}>
               <Stack direction="row" justifyContent="flex-end" spacing={2}>
-                <Button variant="outlined" color="inherit" onClick={onClose}>
+                <Button
+                  variant="outlined"
+                  color="inherit"
+                  onClick={() => {
+                    onDeleteFile();
+                    reset();
+                  }}
+                >
                   Batalkan
                 </Button>
                 <LoadingButton
