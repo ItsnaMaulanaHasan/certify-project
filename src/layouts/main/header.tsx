@@ -13,8 +13,8 @@ import { useResponsive } from 'src/hooks/use-responsive';
 import Logo from 'src/components/logo';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 
+import AuthView from './auth-view';
 import NavMobile from './nav/mobile';
-import LoginView from './login-view';
 import NavDesktop from './nav/desktop';
 import { HEADER } from '../config-layout';
 import { navConfig } from './config-navigation';
@@ -66,7 +66,7 @@ export default function Header() {
             fullWidth
             open={auth}
             onClose={() => setAuth(false)}
-            content={<LoginView />}
+            content={<AuthView />}
           />
         </Container>
       </Toolbar>
