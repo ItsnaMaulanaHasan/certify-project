@@ -78,6 +78,7 @@ export default function AuthView() {
   //   handleSubmit,
   //   formState: { isSubmitting },
   // } = methodsLogin;
+
   const {
     handleSubmit: handleSubmitLogin,
     formState: { isSubmitting: isSubmittingLogin },
@@ -94,6 +95,8 @@ export default function AuthView() {
 
   const onSubmitRegister = handleSubmitRegister(async (data) => {
     console.log(data);
+    setAuth('login');
+    methodsRegister.reset();
   });
 
   const renderHead = (
