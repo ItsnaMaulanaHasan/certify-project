@@ -36,6 +36,8 @@ export default function AuthView() {
   };
 
   const password = useBoolean();
+  const passwordRegister = useBoolean();
+  const confPassword = useBoolean();
   const forgotPassword = useBoolean();
 
   const LoginSchema = Yup.object().shape({
@@ -43,7 +45,18 @@ export default function AuthView() {
     password: Yup.string().required('Password is required'),
   });
 
-  const methods = useForm({
+  const RegisterSchema = Yup.object().shape({
+    emailRegister: Yup.string()
+      .required('Email is required')
+      .email('Email must be a valid email address'),
+    username: Yup.string().required('Email is required'),
+    passwordRegister: Yup.string().required('Password is required'),
+    confPassword: Yup.string()
+      .required('Confirm password is required')
+      .oneOf([Yup.ref('passwordRegister')], 'Passwords must match'),
+  });
+
+  const methodsLogin = useForm({
     resolver: yupResolver(LoginSchema),
     defaultValues: {
       email: '',
@@ -51,12 +64,35 @@ export default function AuthView() {
     },
   });
 
-  const {
-    handleSubmit,
-    formState: { isSubmitting },
-  } = methods;
+  const methodsRegister = useForm({
+    resolver: yupResolver(RegisterSchema),
+    defaultValues: {
+      emailRegister: '',
+      username: '',
+      passwordRegister: '',
+      confPassword: '',
+    },
+  });
 
-  const onSubmit = handleSubmit(async (data) => {
+  // const {
+  //   handleSubmit,
+  //   formState: { isSubmitting },
+  // } = methodsLogin;
+  const {
+    handleSubmit: handleSubmitLogin,
+    formState: { isSubmitting: isSubmittingLogin },
+  } = methodsLogin;
+
+  const {
+    handleSubmit: handleSubmitRegister,
+    formState: { isSubmitting: isSubmittingRegister },
+  } = methodsRegister;
+
+  const onSubmitLogin = handleSubmitLogin(async (data) => {
+    console.log(data);
+  });
+
+  const onSubmitRegister = handleSubmitRegister(async (data) => {
     console.log(data);
   });
 
@@ -70,7 +106,7 @@ export default function AuthView() {
       <Stack spacing={2}>
         <Stack spacing="32px" sx={{ my: xlDown ? '20px' : '48px' }}>
           <Stack gap="8px">
-            <Typography variant="body2">Username</Typography>
+            <Typography variant="body2">Email</Typography>
             <RHFTextField name="email" placeholder="Masukkan Username" />
           </Stack>
           <Stack gap="8px">
@@ -109,7 +145,7 @@ export default function AuthView() {
           size="large"
           type="submit"
           variant="contained"
-          loading={isSubmitting}
+          loading={isSubmittingLogin}
         >
           Login
         </LoadingButton>
@@ -131,7 +167,7 @@ export default function AuthView() {
         <Stack spacing="32px" sx={{ my: xlDown ? '20px' : '48px' }}>
           <Stack gap="8px">
             <Typography variant="body2">Email</Typography>
-            <RHFTextField name="email" placeholder="Masukkan email" />
+            <RHFTextField name="emailRegister" placeholder="Masukkan email" />
           </Stack>
           <Stack gap="8px">
             <Typography variant="body2">Username</Typography>
@@ -140,15 +176,15 @@ export default function AuthView() {
           <Stack gap="8px">
             <Typography variant="body2">Password</Typography>
             <RHFTextField
-              name="password"
-              type={password.value ? 'text' : 'password'}
+              name="passwordRegister"
+              type={passwordRegister.value ? 'text' : 'password'}
               placeholder="Masukkan Password"
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton onClick={password.onToggle} edge="end">
+                    <IconButton onClick={passwordRegister.onToggle} edge="end">
                       <Iconify
-                        icon={password.value ? 'eva:eye-outline' : 'eva:eye-off-2-outline'}
+                        icon={passwordRegister.value ? 'eva:eye-outline' : 'eva:eye-off-2-outline'}
                       />
                     </IconButton>
                   </InputAdornment>
@@ -159,15 +195,15 @@ export default function AuthView() {
           <Stack gap="8px">
             <Typography variant="body2">Confirm Password</Typography>
             <RHFTextField
-              name="password"
-              type={password.value ? 'text' : 'password'}
+              name="confPassword"
+              type={confPassword.value ? 'text' : 'password'}
               placeholder="Konfirmasi Password"
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton onClick={password.onToggle} edge="end">
+                    <IconButton onClick={confPassword.onToggle} edge="end">
                       <Iconify
-                        icon={password.value ? 'eva:eye-outline' : 'eva:eye-off-2-outline'}
+                        icon={confPassword.value ? 'eva:eye-outline' : 'eva:eye-off-2-outline'}
                       />
                     </IconButton>
                   </InputAdornment>
@@ -183,7 +219,7 @@ export default function AuthView() {
           size="large"
           type="submit"
           variant="contained"
-          loading={isSubmitting}
+          loading={isSubmittingRegister}
         >
           Register
         </LoadingButton>
@@ -202,12 +238,25 @@ export default function AuthView() {
     );
 
   return (
-    <FormProvider methods={methods} onSubmit={onSubmit}>
-      <Box sx={{ px: { xs: 4, md: 10 }, py: 2 }}>
-        {renderHead}
+    <Box>
+      {auth === 'login' && (
+        <FormProvider methods={methodsLogin} onSubmit={onSubmitLogin}>
+          <Box sx={{ px: { xs: 4, md: 10 }, py: 2 }}>
+            {renderHead}
 
-        {renderForm}
-      </Box>
-    </FormProvider>
+            {renderForm}
+          </Box>
+        </FormProvider>
+      )}
+      {auth === 'register' && (
+        <FormProvider methods={methodsRegister} onSubmit={onSubmitRegister}>
+          <Box sx={{ px: { xs: 4, md: 10 }, py: 2 }}>
+            {renderHead}
+
+            {renderForm}
+          </Box>
+        </FormProvider>
+      )}
+    </Box>
   );
 }
