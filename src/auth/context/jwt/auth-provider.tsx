@@ -5,7 +5,7 @@ import { useMemo, useEffect, useReducer, useCallback } from 'react';
 import axios, { endpoints } from 'src/utils/axios';
 
 import { AuthContext } from './auth-context';
-import { setSession, isValidToken } from './utils';
+import { setSession, encodeData, decryptData } from './utils';
 import { AuthUserType, ActionMapType, AuthStateType } from '../../types';
 
 // ----------------------------------------------------------------------
@@ -75,7 +75,7 @@ const reducer = (state: AuthStateType, action: ActionsType) => {
 
 // ----------------------------------------------------------------------
 
-const STORAGE_KEY = 'accessToken';
+// const STORAGE_KEY = 'accessToken';
 
 type Props = {
   children: React.ReactNode;
@@ -86,20 +86,17 @@ export function AuthProvider({ children }: Props) {
 
   const initialize = useCallback(async () => {
     try {
-      const accessToken = sessionStorage.getItem(STORAGE_KEY);
+      const accessToken = localStorage.getItem('accessToken');
+      const encryptUser = localStorage.getItem('@ud');
+      const userData = encryptUser && decryptData(encryptUser);
 
-      if (accessToken && isValidToken(accessToken)) {
+      if (accessToken) {
         setSession(accessToken);
-
-        const res = await axios.get(endpoints.auth.me);
-
-        const { user } = res.data;
-
         dispatch({
           type: Types.INITIAL,
           payload: {
             user: {
-              ...user,
+              ...userData,
               accessToken,
             },
           },
@@ -136,16 +133,30 @@ export function AuthProvider({ children }: Props) {
 
     const res = await axios.post(endpoints.auth.login, data);
 
-    const { accessToken, user } = res.data;
+    const { accessToken } = res.data;
 
     setSession(accessToken);
+
+    getUserData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const getUserData = useCallback(async () => {
+    const res = await axios.get(endpoints.auth.getUser);
+
+    const user = res.data[0];
+
+    if (user) {
+      const dataUser = encodeData(user);
+
+      localStorage.setItem('@ud', dataUser as string);
+    }
 
     dispatch({
       type: Types.LOGIN,
       payload: {
         user: {
           ...user,
-          accessToken,
         },
       },
     });
@@ -153,35 +164,22 @@ export function AuthProvider({ children }: Props) {
 
   // REGISTER
   const register = useCallback(
-    async (email: string, password: string, firstName: string, lastName: string) => {
+    async (email: string, username: string, password: string, confPassword: string) => {
       const data = {
         email,
+        username,
         password,
-        firstName,
-        lastName,
+        confPassword,
       };
 
-      const res = await axios.post(endpoints.auth.register, data);
-
-      const { accessToken, user } = res.data;
-
-      sessionStorage.setItem(STORAGE_KEY, accessToken);
-
-      dispatch({
-        type: Types.REGISTER,
-        payload: {
-          user: {
-            ...user,
-            accessToken,
-          },
-        },
-      });
+      await axios.post(endpoints.auth.register, data);
     },
     []
   );
 
   // LOGOUT
   const logout = useCallback(async () => {
+    axios.delete(endpoints.auth.logout);
     setSession(null);
     dispatch({
       type: Types.LOGOUT,

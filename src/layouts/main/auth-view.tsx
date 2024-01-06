@@ -8,6 +8,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
+import Alert from '@mui/material/Alert';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import LoadingButton from '@mui/lab/LoadingButton';
@@ -16,16 +17,22 @@ import InputAdornment from '@mui/material/InputAdornment';
 import { useBoolean } from 'src/hooks/use-boolean';
 import { useResponsive } from 'src/hooks/use-responsive';
 
+import { useAuthContext } from 'src/auth/hooks';
+
 import Iconify from 'src/components/iconify';
 import FormProvider, { RHFTextField } from 'src/components/hook-form';
 
 // ----------------------------------------------------------------------
 
-export default function AuthView() {
+export default function AuthView({ onClose }: { onClose: VoidFunction }) {
   // const [auth, setAuth] = useState(false);
+  const [isRegisterSuccess, setIsRegisterSuccess] = useState(false);
+
+  const { login, register } = useAuthContext();
   const xlDown = useResponsive('down', 'xl');
 
   const [auth, setAuth] = useState('login');
+  const [msgError, setMsgError] = useState('');
 
   const handleSwitchToRegister = () => {
     setAuth('register');
@@ -90,13 +97,23 @@ export default function AuthView() {
   } = methodsRegister;
 
   const onSubmitLogin = handleSubmitLogin(async (data) => {
-    console.log(data);
+    try {
+      await login(data.email, data.password);
+      onClose();
+    } catch (error) {
+      setMsgError(error.msg);
+    }
   });
 
   const onSubmitRegister = handleSubmitRegister(async (data) => {
-    console.log(data);
-    setAuth('login');
-    methodsRegister.reset();
+    try {
+      await register(data.emailRegister, data.username, data.passwordRegister, data.confPassword);
+      setIsRegisterSuccess(true);
+      methodsRegister.reset();
+    } catch (error) {
+      setIsRegisterSuccess(false);
+      setMsgError(error.msg);
+    }
   });
 
   const renderHead = (
@@ -108,6 +125,7 @@ export default function AuthView() {
       // Form Login
       <Stack spacing={2}>
         <Stack spacing="32px" sx={{ my: xlDown ? '20px' : '48px' }}>
+          {!!msgError && <Alert severity="error">{msgError}</Alert>}
           <Stack gap="8px">
             <Typography variant="body2">Email</Typography>
             <RHFTextField name="email" placeholder="Masukkan Username" />
@@ -168,6 +186,19 @@ export default function AuthView() {
       // Form Register
       <Stack spacing={2}>
         <Stack spacing="32px" sx={{ my: xlDown ? '20px' : '48px' }}>
+          {!!msgError && <Alert severity="error">{msgError}</Alert>}
+          {isRegisterSuccess && (
+            <Alert severity="success">
+              Register berhasil, silahkan{' '}
+              <Box
+                component="span"
+                sx={{ fontWeight: 'bold', cursor: 'pointer' }}
+                onClick={() => setAuth('login')}
+              >
+                login
+              </Box>{' '}
+            </Alert>
+          )}
           <Stack gap="8px">
             <Typography variant="body2">Email</Typography>
             <RHFTextField name="emailRegister" placeholder="Masukkan email" />
