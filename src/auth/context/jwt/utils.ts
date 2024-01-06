@@ -1,73 +1,35 @@
-import { paths } from 'src/routes/paths';
+import cryptoJS from 'crypto-js';
 
 import axios from 'src/utils/axios';
 
 // ----------------------------------------------------------------------
 
-function jwtDecode(token: string) {
-  const base64Url = token.split('.')[1];
-  const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-  const jsonPayload = decodeURIComponent(
-    window
-      .atob(base64)
-      .split('')
-      .map((c) => `%${`00${c.charCodeAt(0).toString(16)}`.slice(-2)}`)
-      .join('')
-  );
+export const encodeData = (data: object) => {
+  if (!data) return null;
+  const encrypted = cryptoJS.AES.encrypt(
+    JSON.stringify(data),
+    `${process.env.NEXT_PUBLIC_SECRET_KEY}`
+  ).toString();
+  return encrypted;
+};
 
-  return JSON.parse(jsonPayload);
-}
-
-// ----------------------------------------------------------------------
-
-export const isValidToken = (accessToken: string) => {
-  if (!accessToken) {
-    return false;
-  }
-
-  const decoded = jwtDecode(accessToken);
-
-  const currentTime = Date.now() / 1000;
-
-  return decoded.exp > currentTime;
+export const decryptData = (data: any) => {
+  if (!data) return null;
+  const decoded = cryptoJS.AES.decrypt(data, `${process.env.NEXT_PUBLIC_SECRET_KEY}`);
+  if (decoded.sigBytes === 0) return null;
+  const decrypted = JSON.parse(decoded.toString(cryptoJS.enc.Utf8));
+  return decrypted;
 };
 
 // ----------------------------------------------------------------------
 
-export const tokenExpired = (exp: number) => {
-  // eslint-disable-next-line prefer-const
-  let expiredTimer;
-
-  const currentTime = Date.now();
-
-  // Test token expires after 10s
-  // const timeLeft = currentTime + 10000 - currentTime; // ~10s
-  const timeLeft = exp * 1000 - currentTime;
-
-  clearTimeout(expiredTimer);
-
-  expiredTimer = setTimeout(() => {
-    alert('Token expired');
-
-    sessionStorage.removeItem('accessToken');
-
-    window.location.href = paths.dashboard.root;
-  }, timeLeft);
-};
-
-// ----------------------------------------------------------------------
-
-export const setSession = (accessToken: string | null) => {
+export const setSession = (accessToken: any) => {
   if (accessToken) {
-    sessionStorage.setItem('accessToken', accessToken);
+    localStorage.setItem('accessToken', accessToken);
 
     axios.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
-
-    // This function below will handle when token is expired
-    const { exp } = jwtDecode(accessToken); // ~3 days by  server
-    tokenExpired(exp);
   } else {
-    sessionStorage.removeItem('accessToken');
+    localStorage.removeItem('accessToken');
 
     delete axios.defaults.headers.common.Authorization;
   }

@@ -5,10 +5,16 @@ import { Box, Grid, Card, Stack, Button, Divider, Container, Typography } from '
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
 
+import { useAuthContext } from 'src/auth/hooks';
+import AuthView from 'src/layouts/main/auth-view';
+
 import Iconify from 'src/components/iconify';
 import { Upload } from 'src/components/upload';
+import { ConfirmDialog } from 'src/components/custom-dialog';
 
 export default function UploadCek() {
+  const [authView, setAuthView] = useState(false);
+  const { user } = useAuthContext();
   const [file, setFile] = useState<File | string | null>(null);
 
   const [isChecked, setIsChecked] = useState(false);
@@ -60,7 +66,7 @@ export default function UploadCek() {
         />
         <Stack direction="row" gap={2}>
           <Button
-            onClick={() => setIsChecked(true)}
+            onClick={user && user.username ? () => setIsChecked(true) : () => setAuthView(true)}
             variant="contained"
             sx={{
               backgroundColor: 'success.main',
@@ -70,13 +76,14 @@ export default function UploadCek() {
             Cek
           </Button>
           <Button
+            onClick={() => !user?.username && setAuthView(true)}
             variant="contained"
             sx={{
               backgroundColor: 'primary.main',
               px: '50px',
             }}
             component={RouterLink}
-            href={paths.upload.create}
+            href={user && user.username ? paths.upload.create : '#'}
           >
             Buat
           </Button>
@@ -134,6 +141,13 @@ export default function UploadCek() {
           </Grid>
         </Card>
       )}
+      <ConfirmDialog
+        maxWidth="md"
+        fullWidth
+        open={authView}
+        onClose={() => setAuthView(false)}
+        content={<AuthView onClose={() => setAuthView(false)} />}
+      />
     </Container>
   );
 }

@@ -1,17 +1,32 @@
 import axios, { AxiosRequestConfig } from 'axios';
 
-import { paths } from 'src/routes/paths';
-
 import { HOST_API } from 'src/config-global';
 
 // ----------------------------------------------------------------------
 
-const axiosInstance = axios.create({ baseURL: HOST_API });
+const axiosInstance = axios.create({ baseURL: HOST_API, withCredentials: true });
 
 axiosInstance.interceptors.response.use(
   (res) => res,
   async (error) => {
     const originalRequest = error.config;
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      try {
+        const response = await axiosInstance.post(endpoints.auth.refresh);
+
+        localStorage.setItem('accessToken', response.data.accessToken);
+
+        axiosInstance.defaults.headers.common.Authorization = `Bearer ${response.data.accessToken}`;
+        originalRequest.headers.Authorization = `Bearer ${response.data.accessToken}`;
+
+        return await axiosInstance(originalRequest);
+      } catch (e) {
+        console.error(e);
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('@ud');
+      }
+    }
     return Promise.reject((error.response && error.response.data) || 'Something went wrong');
   }
 );
@@ -31,34 +46,11 @@ export const fetcher = async (args: string | [string, AxiosRequestConfig]) => {
 // ----------------------------------------------------------------------
 
 export const endpoints = {
-  bucket: {
-    public: '/bucket/public',
-    private: '/bucket/private',
-  },
   auth: {
-    login: '/v1/user/login',
-    logout: '/v1/user/logout',
-    register: '/v1/user/register',
-    refresh: '/v1/token/refresh',
-  },
-  profile: {
-    root: '/v1/user',
-    changePassword: '/v1/user/change-password',
-  },
-  sow: '/v1/works-scope',
-  service: '/v1/service',
-  team: '/v1/user/our-team',
-  gallery: {
-    category: '/v1/gallery/category',
-    item: '/v1/gallery',
-  },
-  product: '/v1/product',
-  message: '/v1/messages',
-  company: {
-    profile: '/v1/company-profile',
-    summary: '/v1/company-profile/summary',
-    banner: '/v1/banner',
-    client: '/v1/our-client',
-    logActivity: '/v1/user/log-activity',
+    login: '/login',
+    logout: '/logout',
+    register: '/register',
+    refresh: '/token',
+    getUser: '/users',
   },
 };
