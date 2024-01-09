@@ -18,6 +18,7 @@ export default function UploadCek() {
   const [file, setFile] = useState<File | string | null>(null);
 
   const [isChecked, setIsChecked] = useState(false);
+  const [result, setResult] = useState<any>(null);
 
   const handleDropSingleFile = useCallback(async (acceptedFiles: File[]) => {
     const newFile = acceptedFiles[0];
@@ -31,6 +32,28 @@ export default function UploadCek() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handleCheck = async () => {
+    try {
+      const formData = new FormData();
+      formData.append('image', file as File); // Assuming 'file' is a File object
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_CERTIFY_API}/decrypt`, {
+        method: 'POST',
+        body: formData,
+      });
+      if (response.ok) {
+        const result_api = await response.json();
+        setResult(JSON.parse(result_api));
+        setIsChecked(true);
+      } else {
+        console.error('Gagal melakukan pengecekan sertifikat');
+      }
+    } catch (error) {
+      console.error('Terjadi kesalahan:', error);
+    }
+  };
+
   return (
     <Container>
       <Stack gap={5} alignItems="center" textAlign="center">
@@ -38,9 +61,8 @@ export default function UploadCek() {
           Cek Sertifikat Anda
         </Typography>
         <Typography sx={{ fontSize: '23px', fontWeight: 300 }}>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce non rhoncus quam, ac
-          aliquet nisl. Praesent id metus malesuada, pulvinar mi eget, lobortis urna. Proin dictum
-          leo eu tincidunt efficitur. Aliquam ullamcorper ut mi et dignissim.
+          Unggah file Sertifikat Anda yang telah diamankan dengan aman menggunakan steganografi
+          untuk mendapatkan kembali informasi rahasia yang disimpan di dalamnya.
         </Typography>
         <Upload
           file={file}
@@ -66,7 +88,7 @@ export default function UploadCek() {
         />
         <Stack direction="row" gap={2}>
           <Button
-            onClick={user && user.username ? () => setIsChecked(true) : () => setAuthView(true)}
+            onClick={user && user.username ? handleCheck : () => setAuthView(true)}
             variant="contained"
             sx={{
               backgroundColor: 'success.main',
@@ -89,7 +111,7 @@ export default function UploadCek() {
           </Button>
         </Stack>
       </Stack>
-      {file && isChecked && (
+      {file && isChecked && result && (
         <Card sx={{ border: '1px', borderRadius: '10px', mt: '50px' }}>
           <Box sx={{ backgroundColor: 'grey.300', py: '18px', pl: '45px' }}>
             <Typography sx={{ fontSize: '20px', fontWeight: 500, color: 'grey.700' }}>
@@ -101,7 +123,7 @@ export default function UploadCek() {
               <Typography sx={{ fontSize: '20px', fontWeight: '500' }}>Nomor Sertifikat</Typography>
             </Grid>
             <Grid item xs={12} md={8}>
-              <Typography sx={{ fontSize: '20px' }}>CERT/ANIES/PRES-2024-RI01</Typography>
+              <Typography sx={{ fontSize: '20px' }}>{result.no}</Typography>
             </Grid>
             <Grid item xs={12}>
               <Divider flexItem />
@@ -110,7 +132,7 @@ export default function UploadCek() {
               <Typography sx={{ fontSize: '20px', fontWeight: '500' }}>Nama</Typography>
             </Grid>
             <Grid item xs={12} md={8}>
-              <Typography sx={{ fontSize: '20px' }}>Anies Baswedan</Typography>
+              <Typography sx={{ fontSize: '20px' }}>{result.nama}</Typography>
             </Grid>
             <Grid item xs={12}>
               <Divider flexItem />
@@ -119,7 +141,7 @@ export default function UploadCek() {
               <Typography sx={{ fontSize: '20px', fontWeight: '500' }}>Email</Typography>
             </Grid>
             <Grid item xs={12} md={8}>
-              <Typography sx={{ fontSize: '20px' }}>aniesalumiugm@mhs.ugm.ac.id</Typography>
+              <Typography sx={{ fontSize: '20px' }}>{result.email}</Typography>
             </Grid>
             <Grid item xs={12}>
               <Divider flexItem />
@@ -130,10 +152,7 @@ export default function UploadCek() {
               </Typography>
             </Grid>
             <Grid item xs={12} md={8}>
-              <Typography sx={{ fontSize: '20px' }}>
-                Sertifikat pelatihan kepemimpinan presiden dengan judul “Menuju Indonesia Maju 2035
-                Bersama Pemimpin yang tidak Memalukan Almamater Kampus”
-              </Typography>
+              <Typography sx={{ fontSize: '20px' }}>{result.info}</Typography>
             </Grid>
             <Grid item xs={12}>
               <Divider flexItem />

@@ -4,7 +4,17 @@ import { useState, useCallback } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
 
 import { LoadingButton } from '@mui/lab';
-import { Card, Grid, Stack, Button, Container, Typography, IconButton } from '@mui/material';
+import {
+  Card,
+  Grid,
+  Stack,
+  Alert,
+  Button,
+  Container,
+  Typography,
+  IconButton,
+  AlertColor,
+} from '@mui/material';
 
 import Iconify from 'src/components/iconify';
 import { UploadBox } from 'src/components/upload';
@@ -39,6 +49,7 @@ export default function CreateForm({ onClose }: Props) {
   const [file, setFile] = useState<File | string | null>(null);
 
   const [fileName, setFileName] = useState('');
+  const [alert, setAlert] = useState({ show: false, severity: '', message: '' });
 
   const handleDropSingleFile = useCallback(async (acceptedFiles: File[]) => {
     const newFile = acceptedFiles[0];
@@ -73,7 +84,49 @@ export default function CreateForm({ onClose }: Props) {
   } = methods;
 
   const onSubmit = handleSubmit(async (data) => {
-    console.log(data);
+    try {
+      const formData = new FormData();
+      formData.append('image', file as File); // Assuming 'file' is a File object
+      formData.append('no', data.nomor);
+      formData.append('name', data.nama);
+      formData.append('email', data.email);
+      formData.append('info', data.info);
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_CERTIFY_API}/encrypt`, {
+        method: 'POST',
+        body: formData,
+      });
+      if (response.ok) {
+        const result_api = await response.json();
+        const getImageResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_CERTIFY_API}/get_image/${result_api.filename}`
+        );
+        if (getImageResponse.ok) {
+          // Convert the image response to blob
+          const imageBlob = await getImageResponse.blob();
+
+          // Create a temporary anchor element to trigger download
+          const downloadLink = document.createElement('a');
+          downloadLink.href = URL.createObjectURL(imageBlob);
+          downloadLink.setAttribute('download', result_api.filename); // Set the filename for download
+          downloadLink.click();
+
+          // Cleanup
+          URL.revokeObjectURL(downloadLink.href);
+        } else {
+          console.error('Failed to fetch the encrypted image');
+        }
+        reset();
+        setFile(null);
+        setFileName('');
+        setAlert({ show: true, severity: 'success', message: 'Proses Stegano Sertifikat Success' });
+      } else {
+        console.error('Gagal melakukan pengecekan sertifikat');
+        setAlert({ show: true, severity: 'error', message: 'Proses Stegano Sertifikat Gagal' });
+      }
+    } catch (error) {
+      console.log(error);
+    }
   });
 
   const onDeleteFile = () => {
@@ -93,6 +146,9 @@ export default function CreateForm({ onClose }: Props) {
       <Stack>
         <FormProvider methods={methods} onSubmit={onSubmit}>
           <Grid container spacing={3} sx={{ p: 3 }} alignItems="center">
+            <Grid item xs={12}>
+              {alert.show && <Alert severity={alert.severity as AlertColor}>{alert.message}</Alert>}
+            </Grid>
             <Grid item xs={12}>
               <Card sx={{ borderRadius: '10px' }}>
                 <Grid container spacing={3}>

@@ -1,5 +1,7 @@
 import { Box, Grid, Stack, Button, Container, Typography } from '@mui/material';
 
+import { RouterLink } from 'src/routes/components';
+
 export default function HomeHero() {
   return (
     <Container maxWidth="xl" sx={{ height: { xs: 'inherit', lg: '50vh' } }}>
@@ -23,6 +25,8 @@ export default function HomeHero() {
               online.
             </Typography>
             <Button
+              component={RouterLink}
+              href="/upload"
               variant="contained"
               sx={{
                 background: 'linear-gradient(90deg, #514FFF 0%, #3535DD 94.8%)',
