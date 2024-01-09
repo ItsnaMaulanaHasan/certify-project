@@ -20,6 +20,7 @@ import { ConfirmDialog } from 'src/components/custom-dialog';
 
 import AuthView from './auth-view';
 import NavMobile from './nav/mobile';
+import LogoutView from './logout-view';
 import NavDesktop from './nav/desktop';
 import { HEADER } from '../config-layout';
 import { navConfig } from './config-navigation';
@@ -28,8 +29,9 @@ import HeaderShadowLanding from '../common/header-shadow-landing';
 // ----------------------------------------------------------------------
 
 export default function Header() {
-  const { user, logout } = useAuthContext();
+  const { user } = useAuthContext();
   const [auth, setAuth] = useState(false);
+  const [logoutView, setLogoutView] = useState(false);
 
   const theme = useTheme();
 
@@ -68,7 +70,7 @@ export default function Header() {
                 <Typography variant="body1" color="initial">
                   {user.username}
                 </Typography>
-                <IconButton onClick={logout}>
+                <IconButton onClick={() => setLogoutView(true)}>
                   <Iconify icon="tabler:logout" sx={{ color: 'error.main' }} />
                 </IconButton>
               </Stack>
@@ -85,6 +87,13 @@ export default function Header() {
             open={auth}
             onClose={() => setAuth(false)}
             content={<AuthView onClose={() => setAuth(false)} />}
+          />
+          <ConfirmDialog
+            maxWidth="md"
+            fullWidth
+            open={logoutView}
+            onClose={() => setLogoutView(false)}
+            content={<LogoutView onClose={() => setLogoutView(false)} />}
           />
         </Container>
       </Toolbar>
