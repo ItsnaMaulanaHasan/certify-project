@@ -1,6 +1,17 @@
 import { useState, useCallback } from 'react';
 
-import { Box, Grid, Card, Stack, Button, Divider, Container, Typography } from '@mui/material';
+import {
+  Box,
+  Grid,
+  Card,
+  Stack,
+  Alert,
+  Button,
+  Divider,
+  Container,
+  AlertColor,
+  Typography,
+} from '@mui/material';
 
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
@@ -13,12 +24,13 @@ import { Upload } from 'src/components/upload';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 
 export default function UploadCek() {
-  const [authView, setAuthView] = useState(false);
   const { user } = useAuthContext();
-  const [file, setFile] = useState<File | string | null>(null);
 
+  const [authView, setAuthView] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
   const [result, setResult] = useState<any>(null);
+  const [file, setFile] = useState<File | string | null>(null);
+  const [alert, setAlert] = useState({ show: false, severity: '', message: '' });
 
   const handleDropSingleFile = useCallback(async (acceptedFiles: File[]) => {
     const newFile = acceptedFiles[0];
@@ -46,11 +58,14 @@ export default function UploadCek() {
         const result_api = await response.json();
         setResult(JSON.parse(result_api));
         setIsChecked(true);
+        setAlert({ show: true, severity: 'success', message: 'Pesan Berhasil Ditemukan' });
       } else {
         console.error('Gagal melakukan pengecekan sertifikat');
+        setAlert({ show: true, severity: 'error', message: 'Pesan Tidak Berhasil Ditemukan' });
       }
     } catch (error) {
       console.error('Terjadi kesalahan:', error);
+      setAlert({ show: true, severity: 'error', message: 'Pesan Tidak Berhasil Ditemukan' });
     }
   };
 
@@ -110,6 +125,7 @@ export default function UploadCek() {
             Buat
           </Button>
         </Stack>
+        {alert.show && <Alert severity={alert.severity as AlertColor}>{alert.message}</Alert>}
       </Stack>
       {file && isChecked && result && (
         <Card sx={{ border: '1px', borderRadius: '10px', mt: '50px' }}>

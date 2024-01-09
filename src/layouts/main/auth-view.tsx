@@ -25,7 +25,6 @@ import FormProvider, { RHFTextField } from 'src/components/hook-form';
 // ----------------------------------------------------------------------
 
 export default function AuthView({ onClose }: { onClose: VoidFunction }) {
-  // const [auth, setAuth] = useState(false);
   const [isRegisterSuccess, setIsRegisterSuccess] = useState(false);
 
   const { login, register } = useAuthContext();
@@ -45,7 +44,6 @@ export default function AuthView({ onClose }: { onClose: VoidFunction }) {
   const password = useBoolean();
   const passwordRegister = useBoolean();
   const confPassword = useBoolean();
-  const forgotPassword = useBoolean();
 
   const LoginSchema = Yup.object().shape({
     email: Yup.string().required('Email is required').email('Email must be a valid email address'),
@@ -125,7 +123,6 @@ export default function AuthView({ onClose }: { onClose: VoidFunction }) {
       // Form Login
       <Stack spacing={2}>
         <Stack spacing="32px" sx={{ my: xlDown ? '20px' : '48px' }}>
-          {!!msgError && <Alert severity="error">{msgError}</Alert>}
           <Stack gap="8px">
             <Typography variant="body2">Email</Typography>
             <RHFTextField name="email" placeholder="Masukkan Username" />
@@ -150,14 +147,14 @@ export default function AuthView({ onClose }: { onClose: VoidFunction }) {
             />
           </Stack>
 
-          <Typography
+          {/* <Typography
             variant="body2"
             color="primary"
             sx={{ alignSelf: 'flex-end', cursor: 'pointer' }}
             onClick={forgotPassword.onTrue}
           >
             Lupa password?
-          </Typography>
+          </Typography> */}
         </Stack>
 
         <LoadingButton
@@ -186,7 +183,6 @@ export default function AuthView({ onClose }: { onClose: VoidFunction }) {
       // Form Register
       <Stack spacing={2}>
         <Stack spacing="32px" sx={{ my: xlDown ? '20px' : '48px' }}>
-          {!!msgError && <Alert severity="error">{msgError}</Alert>}
           {isRegisterSuccess && (
             <Alert severity="success">
               Register berhasil, silahkan{' '}
@@ -277,6 +273,12 @@ export default function AuthView({ onClose }: { onClose: VoidFunction }) {
         <FormProvider methods={methodsLogin} onSubmit={onSubmitLogin}>
           <Box sx={{ px: { xs: 4, md: 10 }, py: 2 }}>
             {renderHead}
+
+            {!!msgError && (
+              <Alert severity="error" sx={{ mt: '25px' }}>
+                {msgError}
+              </Alert>
+            )}
 
             {renderForm}
           </Box>

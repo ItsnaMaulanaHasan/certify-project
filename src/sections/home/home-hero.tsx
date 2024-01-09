@@ -1,8 +1,18 @@
+import { useState } from 'react';
+
 import { Box, Grid, Stack, Button, Container, Typography } from '@mui/material';
 
+import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
 
+import { useAuthContext } from 'src/auth/hooks';
+import AuthView from 'src/layouts/main/auth-view';
+
+import { ConfirmDialog } from 'src/components/custom-dialog';
+
 export default function HomeHero() {
+  const [authView, setAuthView] = useState(false);
+  const { user } = useAuthContext();
   return (
     <Container maxWidth="xl" sx={{ height: { xs: 'inherit', lg: '50vh' } }}>
       <Grid container spacing={3}>
@@ -25,8 +35,9 @@ export default function HomeHero() {
               online.
             </Typography>
             <Button
+              onClick={() => !user?.username && setAuthView(true)}
               component={RouterLink}
-              href="/upload"
+              href={user && user.username ? paths.dashboard.upload : '#'}
               variant="contained"
               sx={{
                 background: 'linear-gradient(90deg, #514FFF 0%, #3535DD 94.8%)',
@@ -46,6 +57,13 @@ export default function HomeHero() {
           />
         </Grid>
       </Grid>
+      <ConfirmDialog
+        maxWidth="md"
+        fullWidth
+        open={authView}
+        onClose={() => setAuthView(false)}
+        content={<AuthView onClose={() => setAuthView(false)} />}
+      />
     </Container>
   );
 }
